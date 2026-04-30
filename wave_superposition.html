@@ -3,994 +3,1150 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wave Superposition Lab</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Quantum Wave Lab · Advanced</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;1,300&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  :root {
-    --bg: #04080f;
-    --bg2: #090f1a;
-    --bg3: #0e1825;
-    --panel: #111c2e;
-    --panel2: #172236;
-    --border: rgba(50, 140, 255, 0.12);
-    --border2: rgba(50, 140, 255, 0.22);
-    --accent: #3a8fff;
-    --accent2: #00d4ff;
-    --accent3: #ff6b35;
-    --accent4: #a259ff;
-    --text: #e8f0ff;
-    --text2: #7a9cc8;
-    --text3: #3d5a80;
-    --green: #00e5a0;
-    --yellow: #ffd060;
-    --red: #ff4d6d;
-    --glow: rgba(58, 143, 255, 0.15);
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Starfield background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
-      radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.25) 0%, transparent 100%),
-      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.15) 0%, transparent 100%),
-      radial-gradient(1.5px 1.5px at 10% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
-      radial-gradient(1px 1px at 90% 50%, rgba(255,255,255,0.15) 0%, transparent 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.2rem 2rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(9,15,26,0.8);
-    backdrop-filter: blur(20px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .logo-icon {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--bg);
-  }
-
-  .logo-text {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--text);
-  }
-
-  .logo-sub {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.08em;
-  }
-
-  .header-badges {
-    display: flex;
-    gap: 8px;
-  }
-
-  .badge {
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 400;
-    letter-spacing: 0.05em;
-  }
-
-  .badge-blue { background: rgba(58,143,255,0.12); color: var(--accent); border: 1px solid rgba(58,143,255,0.2); }
-  .badge-green { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid rgba(0,229,160,0.2); }
-  .badge-pulse { animation: pulse-badge 2s infinite; }
-
-  @keyframes pulse-badge {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
-  .main {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    grid-template-rows: 1fr;
-    min-height: calc(100vh - 65px);
-    position: relative;
-    z-index: 1;
-  }
-
-  /* ---- SIDEBAR ---- */
-  .sidebar {
-    border-right: 1px solid var(--border);
-    background: rgba(9,15,26,0.6);
-    overflow-y: auto;
-    padding: 1.2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .section-label {
-    font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text3);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .control-group {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem;
-  }
-
-  .control-row {
-    margin-bottom: 1rem;
-  }
-  .control-row:last-child { margin-bottom: 0; }
-
-  .control-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-
-  .control-name {
-    font-size: 12px;
-    color: var(--text2);
-    font-weight: 400;
-  }
-
-  .control-name .sym {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent2);
-    font-size: 11px;
-  }
-
-  .control-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  input[type=range] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 4px;
-    background: var(--bg3);
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-  }
-
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--glow);
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
-  }
-  input[type=range]::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 14px rgba(58,143,255,0.4);
-  }
-
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-  }
-  .toggle-row:last-child { border-bottom: none; }
-
-  .toggle-label {
-    font-size: 12px;
-    color: var(--text2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .color-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .toggle {
-    width: 32px; height: 18px;
-    background: var(--bg3);
-    border-radius: 9px;
-    position: relative;
-    transition: background 0.2s;
-    flex-shrink: 0;
-  }
-
-  .toggle.on { background: var(--accent); }
-  .toggle::after {
-    content: '';
-    position: absolute;
-    width: 14px; height: 14px;
-    background: white;
-    border-radius: 50%;
-    top: 2px; left: 2px;
-    transition: left 0.2s;
-  }
-  .toggle.on::after { left: 16px; }
-
-  .preset-btns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-
-  .preset-btn {
-    padding: 8px 10px;
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    color: var(--text2);
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: left;
-    line-height: 1.3;
-  }
-  .preset-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(58,143,255,0.08);
-  }
-  .preset-btn .preset-name { font-weight: 600; font-size: 11px; display: block; }
-  .preset-btn .preset-desc { font-size: 9px; color: var(--text3); display: block; margin-top: 2px; }
-
-  .metric-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-
-  .metric-card {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-  }
-
-  .metric-label {
-    font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text3);
-    letter-spacing: 0.06em;
-  }
-
-  .metric-val {
-    font-size: 16px;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text);
-    margin-top: 2px;
-  }
-
-  .metric-unit {
-    font-size: 10px;
-    color: var(--text3);
-  }
-
-  /* ---- CONTENT AREA ---- */
-  .content {
-    display: flex;
-    flex-direction: column;
-    padding: 1.2rem;
-    gap: 1rem;
-    overflow-y: auto;
-  }
-
-  .chart-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .chart-header {
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(23, 34, 54, 0.5);
-  }
-
-  .chart-title {
-    font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text2);
-    letter-spacing: 0.06em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .chart-title .eq {
-    font-size: 10px;
-    color: var(--text3);
-    background: var(--bg3);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-style: italic;
-  }
-
-  .chart-body {
-    padding: 0.8rem 1rem;
-    position: relative;
-  }
-
-  .chart-container {
-    position: relative;
-    width: 100%;
-  }
-
-  /* Animate button */
-  .anim-btn {
-    padding: 5px 14px;
-    background: var(--accent);
-    border: none;
-    border-radius: 6px;
-    color: var(--bg);
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.04em;
-  }
-  .anim-btn:hover { background: var(--accent2); }
-  .anim-btn.playing { background: var(--accent3); }
-
-  /* Uncertainty viz */
-  .uncertainty-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 1rem;
-    background: var(--bg3);
-    border-top: 1px solid var(--border);
-  }
-
-  .unc-label { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text3); white-space: nowrap; }
-
-  .unc-track {
-    flex: 1;
-    height: 6px;
-    background: var(--bg2);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .unc-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.3s, background 0.3s;
-  }
-
-  .unc-val {
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text);
-    min-width: 60px;
-    text-align: right;
-  }
-
-  /* Bottom row */
-  .bottom-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  /* Spectrum card */
-  .spectrum-canvas {
-    width: 100%;
-    display: block;
-    border-radius: 4px;
-  }
-
-  /* Tooltip info */
-  .info-box {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--text2);
-  }
-
-  .info-box .eq-line {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent2);
-    font-size: 13px;
-    margin: 8px 0;
-    padding: 6px 10px;
-    background: rgba(0,212,255,0.06);
-    border-left: 2px solid var(--accent2);
-    border-radius: 0 4px 4px 0;
-  }
-
-  .hi { color: var(--accent); font-weight: 500; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-  .flex-row { display: flex; align-items: center; gap: 8px; }
-
-  .phase-disp {
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--yellow);
-    background: rgba(255,208,96,0.08);
-    border: 1px solid rgba(255,208,96,0.15);
-    padding: 3px 8px;
-    border-radius: 4px;
-  }
+:root {
+  --bg:     #030508;
+  --bg2:    #07090e;
+  --bg3:    #0b0e17;
+  --panel:  #0f1420;
+  --panel2: #141a28;
+  --border: rgba(80,160,255,0.10);
+  --border2:rgba(80,160,255,0.20);
+  --accent: #4a9eff;
+  --cyan:   #00d4ff;
+  --orange: #ff6b35;
+  --purple: #a259ff;
+  --green:  #00e5a0;
+  --yellow: #ffd060;
+  --red:    #ff4d6d;
+  --pink:   #ff69b4;
+  --text:   #ddeeff;
+  --text2:  #6a8cb0;
+  --text3:  #2d4060;
+  --glow:   rgba(74,158,255,0.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Syne',sans-serif;
+  min-height:100vh;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(74,158,255,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 90%, rgba(162,89,255,0.04) 0%, transparent 70%),
+    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 55% 65%, rgba(255,255,255,0.18) 0%,transparent 100%),
+    radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.22) 0%,transparent 100%),
+    radial-gradient(1px 1px at 38% 82%, rgba(255,255,255,0.14) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 72% 42%, rgba(255,255,255,0.18) 0%,transparent 100%);
+}
+/* ── HEADER ── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 1.6rem;border-bottom:1px solid var(--border);
+  background:rgba(7,9,14,0.85);backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:200;
+}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-weight:600;font-size:15px;color:#030508;
+}
+.logo-text{font-size:14px;font-weight:600;letter-spacing:.04em;}
+.logo-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:.08em;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.badge{
+  padding:3px 9px;border-radius:4px;font-size:10px;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.05em;
+}
+.b-blue{background:rgba(74,158,255,.10);color:var(--accent);border:1px solid rgba(74,158,255,.2);}
+.b-green{background:rgba(0,229,160,.08);color:var(--green);border:1px solid rgba(0,229,160,.18);}
+.b-purple{background:rgba(162,89,255,.10);color:var(--purple);border:1px solid rgba(162,89,255,.2);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.4;}}
+.blinking{animation:blink 2s infinite;}
+/* ── TABS ── */
+.tab-bar{
+  display:flex;border-bottom:1px solid var(--border);
+  background:rgba(7,9,14,0.6);backdrop-filter:blur(10px);
+  position:sticky;top:53px;z-index:150;
+}
+.tab{
+  padding:.6rem 1.2rem;font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;letter-spacing:.05em;white-space:nowrap;
+}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+/* ── LAYOUT ── */
+.main{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 93px);position:relative;z-index:1;}
+/* ── SIDEBAR ── */
+.sidebar{
+  border-right:1px solid var(--border);background:rgba(7,9,14,0.55);
+  overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.9rem;
+}
+.sec-lbl{
+  font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--text3);
+  letter-spacing:.14em;text-transform:uppercase;margin-bottom:.4rem;
+}
+.ctrl-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:.9rem;}
+.ctrl-row{margin-bottom:.9rem;}
+.ctrl-row:last-child{margin-bottom:0;}
+.ctrl-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.ctrl-name{font-size:11px;color:var(--text2);}
+.ctrl-name .sym{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:10px;}
+.ctrl-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text);}
+/* N control — special with text input */
+.n-ctrl{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.n-ctrl input[type=range]{flex:1;}
+.n-input{
+  width:60px;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;
+  padding:3px 6px;text-align:center;outline:none;
+}
+.n-input:focus{border-color:var(--accent);}
+.inf-btn{
+  padding:3px 8px;background:rgba(74,158,255,.12);border:1px solid rgba(74,158,255,.25);
+  border-radius:5px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.inf-btn:hover{background:rgba(74,158,255,.22);}
+.inf-btn.active{background:var(--accent);color:#030508;}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:3px;background:var(--bg3);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 6px var(--glow);cursor:pointer;transition:transform .1s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25);}
+.tog-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;
+}
+.tog-row:last-child{border-bottom:none;}
+.tog-lbl{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:7px;}
+.cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tog{width:30px;height:16px;background:var(--bg3);border-radius:8px;position:relative;transition:background .2s;flex-shrink:0;}
+.tog.on{background:var(--accent);}
+.tog::after{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s;}
+.tog.on::after{left:16px;}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.pbtn{
+  padding:7px 8px;background:var(--panel2);border:1px solid var(--border);border-radius:7px;
+  color:var(--text2);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s;text-align:left;
+}
+.pbtn:hover{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,.07);}
+.pbtn .pn{font-weight:600;display:block;font-size:10px;}
+.pbtn .pd{font-size:9px;color:var(--text3);display:block;margin-top:1px;}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.mc{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:8px;}
+.mc .ml{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:.05em;}
+.mc .mv{font-size:14px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text);margin-top:1px;}
+.mc .mu{font-size:9px;color:var(--text3);}
+/* ── CONTENT ── */
+.content{display:flex;flex-direction:column;padding:1rem;gap:.9rem;overflow-y:auto;}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.ph{
+  padding:.65rem 1rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(20,26,40,0.5);
+}
+.ph-title{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text2);letter-spacing:.05em;display:flex;align-items:center;gap:8px;}
+.ph-eq{font-size:9px;color:var(--text3);background:var(--bg3);padding:2px 7px;border-radius:3px;font-style:italic;}
+.pb{padding:.75rem 1rem;}
+.ch-wrap{position:relative;width:100%;}
+.anim-btn{
+  padding:4px 12px;background:var(--accent);border:none;border-radius:5px;
+  color:#030508;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:600;
+  cursor:pointer;transition:all .15s;letter-spacing:.04em;
+}
+.anim-btn:hover{background:var(--cyan);}
+.anim-btn.playing{background:var(--orange);}
+.t-disp{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--yellow);background:rgba(255,208,96,.08);border:1px solid rgba(255,208,96,.15);padding:3px 8px;border-radius:4px;}
+/* Uncertainty bar */
+.unc-bar{display:flex;align-items:center;gap:8px;padding:8px 1rem;background:var(--bg3);border-top:1px solid var(--border);}
+.ul{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);white-space:nowrap;}
+.utrack{flex:1;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;}
+.ufill{height:100%;border-radius:3px;transition:width .3s,background .3s;}
+.uval{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text);min-width:50px;text-align:right;}
+/* Grid panels */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;}
+/* Tab pages */
+.tab-page{display:none;}
+.tab-page.active{display:flex;flex-direction:column;gap:.9rem;}
+/* Quantum metrics table */
+.qm-table{width:100%;border-collapse:collapse;}
+.qm-table th{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:400;letter-spacing:.06em;}
+.qm-table td{font-size:11px;padding:7px 10px;border-bottom:1px solid rgba(80,160,255,.05);}
+.qm-table tr:last-child td{border-bottom:none;}
+.qm-table .label{color:var(--text2);}
+.qm-table .value{font-family:'JetBrains Mono',monospace;color:var(--text);}
+.qm-table .eq{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:10px;}
+.qm-table .status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:3px;display:inline-block;}
+.ok{background:rgba(0,229,160,.12);color:var(--green);}
+.warn{background:rgba(255,208,96,.10);color:var(--yellow);}
+.fail{background:rgba(255,77,109,.10);color:var(--red);}
+/* Info cards */
+.info-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;}
+.info-card h4{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px;}
+.info-card p{font-size:11px;color:var(--text2);line-height:1.7;}
+.info-card .formula{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);
+  background:rgba(0,212,255,.06);border-left:2px solid var(--cyan);
+  padding:5px 9px;border-radius:0 4px 4px 0;margin:7px 0;
+}
+/* Scalar constant panel */
+.scalar-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.scalar-disp{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--purple);background:rgba(162,89,255,.08);border:1px solid rgba(162,89,255,.18);padding:4px 10px;border-radius:5px;}
+/* Orthogonality matrix */
+.matrix-wrap{overflow-x:auto;}
+.orth-matrix{border-collapse:collapse;font-size:10px;font-family:'JetBrains Mono',monospace;}
+.orth-matrix td{width:28px;height:28px;text-align:center;border:1px solid rgba(80,160,255,.06);transition:background .2s;}
+/* Scrollbar */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.flex-row{display:flex;align-items:center;gap:8px;}
+.sep{height:1px;background:var(--border);margin:.3rem 0;}
 </style>
 </head>
 <body>
 
-<header class="header">
+<header class="hdr">
   <div class="logo">
     <div class="logo-icon">Ψ</div>
     <div>
-      <div class="logo-text">Wave Superposition Lab</div>
-      <div class="logo-sub">quantum wave mechanics · interactive</div>
+      <div class="logo-text">Quantum Wave Lab</div>
+      <div class="logo-sub">advanced superposition · v2.0</div>
     </div>
   </div>
-  <div class="header-badges">
-    <span class="badge badge-blue">Σ harmonics</span>
-    <span class="badge badge-green badge-pulse" id="liveIndicator">● live</span>
+  <div class="hdr-right">
+    <span class="badge b-blue">N → ∞</span>
+    <span class="badge b-purple">|Ψ|² density</span>
+    <span class="badge b-green blinking">● live</span>
   </div>
 </header>
 
+<!-- Tab bar -->
+<nav class="tab-bar">
+  <div class="tab active" onclick="switchTab('wave')">Wave View</div>
+  <div class="tab" onclick="switchTab('prob')">Probability</div>
+  <div class="tab" onclick="switchTab('quantum')">Quantum Properties</div>
+  <div class="tab" onclick="switchTab('ortho')">Orthogonality</div>
+  <div class="tab" onclick="switchTab('reference')">Reference</div>
+</nav>
+
 <div class="main">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
 
-    <div>
-      <div class="section-label">Wave Parameters</div>
-      <div class="control-group">
-        <div class="control-row">
-          <div class="control-header">
-            <span class="control-name">Number of waves <span class="sym">N</span></span>
-            <span class="control-val" id="valN">8</span>
-          </div>
-          <input type="range" id="slN" min="1" max="40" value="8" step="1">
-        </div>
-        <div class="control-row">
-          <div class="control-header">
-            <span class="control-name">k spread <span class="sym">Δk</span></span>
-            <span class="control-val" id="valDk">0.8</span>
-          </div>
-          <input type="range" id="slDk" min="1" max="30" value="8" step="1">
-        </div>
-        <div class="control-row">
-          <div class="control-header">
-            <span class="control-name">Center wavenumber <span class="sym">k₀</span></span>
-            <span class="control-val" id="valK0">2.0</span>
-          </div>
-          <input type="range" id="slK0" min="5" max="40" value="20" step="1">
-        </div>
-        <div class="control-row">
-          <div class="control-header">
-            <span class="control-name">Amplitude <span class="sym">A</span></span>
-            <span class="control-val" id="valA">1.0</span>
-          </div>
-          <input type="range" id="slA" min="1" max="20" value="10" step="1">
-        </div>
-        <div class="control-row">
-          <div class="control-header">
-            <span class="control-name">Dispersion <span class="sym">α</span></span>
-            <span class="control-val" id="valAlpha">0.80</span>
-          </div>
-          <input type="range" id="slAlpha" min="0" max="20" value="8" step="1">
-        </div>
+  <!-- N control with ∞ -->
+  <div>
+    <div class="sec-lbl">Number of Waves</div>
+    <div class="ctrl-box">
+      <div class="ctrl-hdr">
+        <span class="ctrl-name">N <span class="sym">(infinite → Gaussian packet)</span></span>
+        <span class="ctrl-val" id="valN">20</span>
+      </div>
+      <div class="n-ctrl">
+        <input type="range" id="slN" min="1" max="200" value="20" step="1">
+        <input type="number" class="n-input" id="nInput" min="1" max="10000" value="20">
+      </div>
+      <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+        <button class="inf-btn" onclick="setN(1)">N=1</button>
+        <button class="inf-btn" onclick="setN(5)">N=5</button>
+        <button class="inf-btn" onclick="setN(50)">N=50</button>
+        <button class="inf-btn" onclick="setN(500)">N=500</button>
+        <button class="inf-btn" id="infBtn" onclick="toggleInfinite()">N=∞</button>
       </div>
     </div>
+  </div>
 
-    <div>
-      <div class="section-label">Display Layers</div>
-      <div class="control-group">
-        <div class="toggle-row" onclick="toggleLayer('individual')">
-          <span class="toggle-label"><span class="color-dot" style="background:#3a8fff"></span>Individual waves</span>
-          <div class="toggle on" id="tog-individual"></div>
-        </div>
-        <div class="toggle-row" onclick="toggleLayer('envelope')">
-          <span class="toggle-label"><span class="color-dot" style="background:#00e5a0"></span>Envelope</span>
-          <div class="toggle on" id="tog-envelope"></div>
-        </div>
-        <div class="toggle-row" onclick="toggleLayer('super')">
-          <span class="toggle-label"><span class="color-dot" style="background:#ff6b35"></span>Superposition Ψ</span>
-          <div class="toggle on" id="tog-super"></div>
-        </div>
-        <div class="toggle-row" onclick="toggleLayer('phase')">
-          <span class="toggle-label"><span class="color-dot" style="background:#a259ff"></span>Phase velocity</span>
-          <div class="toggle" id="tog-phase"></div>
-        </div>
+  <!-- Wave params -->
+  <div>
+    <div class="sec-lbl">Wave Parameters</div>
+    <div class="ctrl-box">
+      <div class="ctrl-row">
+        <div class="ctrl-hdr"><span class="ctrl-name">Δk spread <span class="sym">Δk</span></span><span class="ctrl-val" id="valDk">1.0</span></div>
+        <input type="range" id="slDk" min="1" max="40" value="10" step="1">
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-hdr"><span class="ctrl-name">Center k <span class="sym">k₀</span></span><span class="ctrl-val" id="valK0">2.0</span></div>
+        <input type="range" id="slK0" min="5" max="60" value="20" step="1">
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-hdr"><span class="ctrl-name">Amplitude <span class="sym">A</span></span><span class="ctrl-val" id="valA">1.0</span></div>
+        <input type="range" id="slA" min="1" max="30" value="10" step="1">
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-hdr"><span class="ctrl-name">Dispersion <span class="sym">α</span></span><span class="ctrl-val" id="valAlpha">0.80</span></div>
+        <input type="range" id="slAlpha" min="0" max="30" value="8" step="1">
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-hdr"><span class="ctrl-name">Scalar const <span class="sym">c</span></span><span class="ctrl-val" id="valC">1.00</span></div>
+        <input type="range" id="slC" min="1" max="30" value="10" step="1">
       </div>
     </div>
+  </div>
 
-    <div>
-      <div class="section-label">Presets</div>
-      <div class="preset-btns">
-        <button class="preset-btn" onclick="loadPreset('narrow')">
-          <span class="preset-name">Narrow packet</span>
-          <span class="preset-desc">high Δk, many waves</span>
-        </button>
-        <button class="preset-btn" onclick="loadPreset('broad')">
-          <span class="preset-name">Broad packet</span>
-          <span class="preset-desc">low Δk, few waves</span>
-        </button>
-        <button class="preset-btn" onclick="loadPreset('quantum')">
-          <span class="preset-name">Quantum ħ</span>
-          <span class="preset-desc">uncertainty demo</span>
-        </button>
-        <button class="preset-btn" onclick="loadPreset('optics')">
-          <span class="preset-name">Optics</span>
-          <span class="preset-desc">high freq, dense</span>
-        </button>
-      </div>
+  <!-- Display layers -->
+  <div>
+    <div class="sec-lbl">Display Layers</div>
+    <div class="ctrl-box">
+      <div class="tog-row" onclick="toggleLayer('individual')"><span class="tog-lbl"><span class="cdot" style="background:#4a9eff"></span>Individual waves</span><div class="tog on" id="tog-individual"></div></div>
+      <div class="tog-row" onclick="toggleLayer('envelope')"><span class="tog-lbl"><span class="cdot" style="background:#00e5a0"></span>Envelope |Ψ|</span><div class="tog on" id="tog-envelope"></div></div>
+      <div class="tog-row" onclick="toggleLayer('super')"><span class="tog-lbl"><span class="cdot" style="background:#ff6b35"></span>Superposition Re(Ψ)</span><div class="tog on" id="tog-super"></div></div>
+      <div class="tog-row" onclick="toggleLayer('prob')"><span class="tog-lbl"><span class="cdot" style="background:#ffd060"></span>Probability |Ψ|²</span><div class="tog" id="tog-prob"></div></div>
+      <div class="tog-row" onclick="toggleLayer('scaled')"><span class="tog-lbl"><span class="cdot" style="background:#a259ff"></span>Scaled c·Ψ</span><div class="tog" id="tog-scaled"></div></div>
+      <div class="tog-row" onclick="toggleLayer('phase')"><span class="tog-lbl"><span class="cdot" style="background:#ff69b4"></span>Phase velocity</span><div class="tog" id="tog-phase"></div></div>
     </div>
+  </div>
 
-    <div>
-      <div class="section-label">Live Metrics</div>
-      <div class="metric-grid">
-        <div class="metric-card">
-          <div class="metric-label">v_phase</div>
-          <div class="metric-val" id="mVp">1.00 <span class="metric-unit">m/s</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">v_group</div>
-          <div class="metric-val" id="mVg">0.80 <span class="metric-unit">m/s</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Δx·Δk</div>
-          <div class="metric-val" id="mUncert">—</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">λ_deBroglie</div>
-          <div class="metric-val" id="mLambda">—</div>
-        </div>
-      </div>
+  <!-- Presets -->
+  <div>
+    <div class="sec-lbl">Presets</div>
+    <div class="preset-grid">
+      <button class="pbtn" onclick="loadPreset('narrow')"><span class="pn">Narrow</span><span class="pd">high Δk · localized</span></button>
+      <button class="pbtn" onclick="loadPreset('broad')"><span class="pn">Broad</span><span class="pd">low Δk · spread</span></button>
+      <button class="pbtn" onclick="loadPreset('quantum')"><span class="pn">Quantum ħ</span><span class="pd">uncertainty demo</span></button>
+      <button class="pbtn" onclick="loadPreset('optics')"><span class="pn">Optics</span><span class="pd">high freq · dense</span></button>
+      <button class="pbtn" onclick="loadPreset('infinite')"><span class="pn">∞ Gauss</span><span class="pd">infinite N limit</span></button>
+      <button class="pbtn" onclick="loadPreset('particle')"><span class="pn">Particle</span><span class="pd">free particle</span></button>
     </div>
+  </div>
 
-  </aside>
+  <!-- Live metrics -->
+  <div>
+    <div class="sec-lbl">Live Metrics</div>
+    <div class="metric-grid">
+      <div class="mc"><div class="ml">v_phase</div><div class="mv" id="mVp">—</div></div>
+      <div class="mc"><div class="ml">v_group</div><div class="mv" id="mVg">—</div></div>
+      <div class="mc"><div class="ml">Δx · Δk</div><div class="mv" id="mUncert">—</div></div>
+      <div class="mc"><div class="ml">λ deBroglie</div><div class="mv" id="mLambda">—</div></div>
+      <div class="mc"><div class="ml">‖Ψ‖² (norm)</div><div class="mv" id="mNorm">—</div></div>
+      <div class="mc"><div class="ml">⟨x⟩ (mean)</div><div class="mv" id="mMean">—</div></div>
+    </div>
+  </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+</aside>
 
-    <!-- Main wave chart -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">
-          Ψ(x, t) = Σ A · sin(kₙx − ωₙt)
-          <span class="eq">superposition</span>
-        </div>
+<!-- ══ CONTENT ══ -->
+<div class="content">
+
+  <!-- ═ TAB: WAVE VIEW ═ -->
+  <div class="tab-page active" id="tab-wave">
+
+    <!-- Main wave -->
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title">Ψ(x,t) = Σ A·sin(kₙx−ωₙt) <span class="ph-eq">superposition</span></div>
         <div class="flex-row">
-          <span class="phase-disp" id="phaseDisp">t = 0.00 s</span>
+          <span class="t-disp" id="phaseDisp">t = 0.00s</span>
           <button class="anim-btn" id="animBtn" onclick="toggleAnimate()">▶ animate</button>
         </div>
       </div>
-      <div class="chart-body">
-        <div class="chart-container" style="height: 220px;">
-          <canvas id="mainChart" role="img" aria-label="Main wave superposition chart showing individual waves and their sum"></canvas>
-        </div>
-      </div>
-      <div class="uncertainty-bar">
-        <span class="unc-label">Δx (position spread)</span>
-        <div class="unc-track"><div class="unc-fill" id="uxFill" style="width:50%; background: var(--accent);"></div></div>
-        <span class="unc-val" id="uxVal">—</span>
-        <span class="unc-label" style="margin-left:12px;">Δk (momentum spread)</span>
-        <div class="unc-track"><div class="unc-fill" id="ukFill" style="width:50%; background: var(--green);"></div></div>
-        <span class="unc-val" id="ukVal">—</span>
+      <div class="pb"><div class="ch-wrap" style="height:220px"><canvas id="mainChart" role="img" aria-label="Wave superposition main chart"></canvas></div></div>
+      <div class="unc-bar">
+        <span class="ul">Δx</span>
+        <div class="utrack"><div class="ufill" id="uxFill" style="width:50%;background:var(--accent)"></div></div>
+        <span class="uval" id="uxVal">—</span>
+        <span class="ul" style="margin-left:10px">Δk</span>
+        <div class="utrack"><div class="ufill" id="ukFill" style="width:50%;background:var(--green)"></div></div>
+        <span class="uval" id="ukVal">—</span>
+        <span class="ul" style="margin-left:10px">Δx·Δk</span>
+        <span class="uval" id="prodVal" style="min-width:40px">—</span>
       </div>
     </div>
 
     <!-- Bottom row -->
-    <div class="bottom-row">
-
-      <!-- k-space spectrum -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title">k-space spectrum <span class="eq">Fourier</span></div>
-        </div>
-        <div class="chart-body">
-          <div class="chart-container" style="height: 160px;">
-            <canvas id="spectrumChart" role="img" aria-label="Frequency spectrum showing distribution of wave components in k-space"></canvas>
-          </div>
-        </div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph"><div class="ph-title">k-space spectrum <span class="ph-eq">Fourier</span></div></div>
+        <div class="pb"><div class="ch-wrap" style="height:150px"><canvas id="spectrumChart" role="img" aria-label="k-space spectrum"></canvas></div></div>
       </div>
-
-      <!-- Dispersion relation -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title">Dispersion relation <span class="eq">ω(k)</span></div>
-        </div>
-        <div class="chart-body">
-          <div class="chart-container" style="height: 160px;">
-            <canvas id="dispersionChart" role="img" aria-label="Dispersion relation showing omega as function of k"></canvas>
-          </div>
-        </div>
+      <div class="panel">
+        <div class="ph"><div class="ph-title">Dispersion ω(k) <span class="ph-eq">relation</span></div></div>
+        <div class="pb"><div class="ch-wrap" style="height:150px"><canvas id="dispersionChart" role="img" aria-label="Dispersion relation"></canvas></div></div>
       </div>
-
     </div>
 
-    <!-- Physics info -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Physics Reference</div>
+  </div>
+
+  <!-- ═ TAB: PROBABILITY ═ -->
+  <div class="tab-page" id="tab-prob">
+
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title">Probability Amplitude Ψ(x) <span class="ph-eq">complex wave</span></div>
+        <span class="badge b-blue">Re(Ψ) + Im(Ψ)</span>
       </div>
-      <div class="chart-body">
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-          <div class="info-box">
-            <strong class="hi">Wave superposition</strong>
-            <div class="eq-line">Ψ = Σ A·sin(kₙx − ωₙt)</div>
-            Adding N waves with slightly different k and ω values creates a localized wave packet — the quantum mechanical model of a particle.
+      <div class="pb"><div class="ch-wrap" style="height:200px"><canvas id="ampChart" role="img" aria-label="Probability amplitude real and imaginary parts"></canvas></div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph">
+          <div class="ph-title">Probability Density |Ψ(x)|² <span class="ph-eq">Born rule</span></div>
+        </div>
+        <div class="pb"><div class="ch-wrap" style="height:170px"><canvas id="probChart" role="img" aria-label="Probability density plot"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="ph">
+          <div class="ph-title">Differential Probability dP/dx <span class="ph-eq">dP = |Ψ|²dx</span></div>
+        </div>
+        <div class="pb"><div class="ch-wrap" style="height:170px"><canvas id="diffProbChart" role="img" aria-label="Differential probability"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph">
+          <div class="ph-title">Scaled Ψ: c·Ψ(x) <span class="ph-eq">up to complex const</span></div>
+        </div>
+        <div class="pb">
+          <div class="scalar-row">
+            <span style="font-size:11px;color:var(--text2)">c =</span>
+            <span class="scalar-disp" id="scalarDisp">1.00 + 0.00i</span>
+            <span style="font-size:10px;color:var(--text3)">|c·Ψ|² = |Ψ|²</span>
           </div>
-          <div class="info-box">
-            <strong class="hi">Phase vs Group velocity</strong>
-            <div class="eq-line">vₚ = ω/k · vg = dω/dk</div>
-            Phase velocity is how fast the ripples move. Group velocity is how fast the packet (information) travels.
-            <span style="color: var(--accent3);">vg = vₚ + k·(dvₚ/dk)</span>
+          <div class="ch-wrap" style="height:140px;margin-top:8px"><canvas id="scaledChart" role="img" aria-label="Scaled wavefunction"></canvas></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph">
+          <div class="ph-title">Cumulative Probability P(x) <span class="ph-eq">∫|Ψ|²dx</span></div>
+        </div>
+        <div class="pb"><div class="ch-wrap" style="height:170px"><canvas id="cumProbChart" role="img" aria-label="Cumulative probability"></canvas></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═ TAB: QUANTUM PROPERTIES ═ -->
+  <div class="tab-page" id="tab-quantum">
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph"><div class="ph-title">Normalization Check <span class="ph-eq">∫|Ψ|²dx = 1</span></div></div>
+        <div class="pb">
+          <div class="ch-wrap" style="height:140px"><canvas id="normChart" role="img" aria-label="Normalization integral chart"></canvas></div>
+          <table class="qm-table" style="margin-top:10px">
+            <tr><th>Property</th><th>Value</th><th>Status</th></tr>
+            <tr><td class="label">‖Ψ‖² = ∫|Ψ|²dx</td><td class="value" id="qNorm">—</td><td><span class="status" id="qNormSt">—</span></td></tr>
+            <tr><td class="label">Normalized ‖Ψ_n‖²</td><td class="value" id="qNormN">—</td><td><span class="status ok">always 1.00</span></td></tr>
+            <tr><td class="label">Square-integrable</td><td class="value" id="qSqInt">—</td><td><span class="status" id="qSqIntSt">—</span></td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="ph-title">Expectation Values <span class="ph-eq">⟨Ô⟩ = ∫Ψ*ÔΨdx</span></div></div>
+        <div class="pb">
+          <table class="qm-table">
+            <tr><th>Observable</th><th>Formula</th><th>Value</th></tr>
+            <tr><td class="label">⟨x⟩ position</td><td class="eq">∫x|Ψ|²dx</td><td class="value" id="qEx">—</td></tr>
+            <tr><td class="label">⟨x²⟩</td><td class="eq">∫x²|Ψ|²dx</td><td class="value" id="qEx2">—</td></tr>
+            <tr><td class="label">σx = Δx</td><td class="eq">√(⟨x²⟩−⟨x⟩²)</td><td class="value" id="qSigX">—</td></tr>
+            <tr><td class="label">⟨k⟩ wavenumber</td><td class="eq">k₀ (by construction)</td><td class="value" id="qEk">—</td></tr>
+            <tr><td class="label">σk = Δk</td><td class="eq">spread parameter</td><td class="value" id="qSigK">—</td></tr>
+            <tr><td class="label">Δx · Δk</td><td class="eq">≥ 1/2 (Heisenberg)</td><td class="value" id="qHeis">—</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="ph-title">Square-Integrability ∫|Ψ|²dx convergence</div></div>
+      <div class="pb"><div class="ch-wrap" style="height:150px"><canvas id="sqIntChart" role="img" aria-label="Square integrability convergence"></canvas></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="ph-title">Scalability up to a Complex Constant <span class="ph-eq">c·Ψ ≡ Ψ physically</span></div></div>
+      <div class="pb">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:5px">Real part of c</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="range" id="slCRe" min="-20" max="20" value="10" step="1" style="flex:1">
+              <span style="font-size:11px;font-family:'JetBrains Mono';color:var(--text);min-width:36px" id="valCRe">1.0</span>
+            </div>
           </div>
-          <div class="info-box">
-            <strong class="hi">Uncertainty Principle</strong>
-            <div class="eq-line">Δx · Δk ≥ ½</div>
-            Narrowing the packet in position (large Δk) spreads it in momentum space. This is the Heisenberg uncertainty principle: <span style="color:var(--yellow)">Δx · Δp ≥ ħ/2</span>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:5px">Imaginary part of c</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="range" id="slCIm" min="-20" max="20" value="0" step="1" style="flex:1">
+              <span style="font-size:11px;font-family:'JetBrains Mono';color:var(--text);min-width:36px" id="valCIm">0.0</span>
+            </div>
           </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:5px">Phase θ of c = |c|e^iθ</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="range" id="slCTheta" min="0" max="62" value="0" step="1" style="flex:1">
+              <span style="font-size:11px;font-family:'JetBrains Mono';color:var(--text);min-width:36px" id="valCTheta">0.0</span>
+            </div>
+          </div>
+        </div>
+        <div class="ch-wrap" style="height:160px"><canvas id="scalarFullChart" role="img" aria-label="Scalar invariance demonstration"></canvas></div>
+        <div style="font-size:11px;color:var(--text2);margin-top:8px;padding:8px;background:rgba(162,89,255,.06);border-radius:6px;border-left:2px solid var(--purple)">
+          |c·Ψ|² = |c|²·|Ψ|² — the probability density scales by |c|², but the <em style="color:var(--purple)">shape</em> is unchanged. Physically, Ψ and c·Ψ are the same quantum state (up to global phase when |c|=1).
         </div>
       </div>
     </div>
 
   </div>
-</div>
+
+  <!-- ═ TAB: ORTHOGONALITY ═ -->
+  <div class="tab-page" id="tab-ortho">
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph"><div class="ph-title">Orthogonality ⟨m|n⟩ <span class="ph-eq">∫Ψm*·Ψn dx = δmn</span></div></div>
+        <div class="pb">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Inner products of particle-in-a-box eigenstates Ψₙ = √(2/L)·sin(nπx/L) over [0,L].</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <div><span style="font-size:10px;color:var(--text3)">Modes m =</span> <input type="number" id="orthoM" min="1" max="8" value="4" style="width:50px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:'JetBrains Mono';font-size:11px;padding:2px 6px;outline:none"></div>
+          </div>
+          <div class="matrix-wrap" id="orthMatrixWrap"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="ph-title">Orthogonality Integral <span class="ph-eq">vs mode pair (m,n)</span></div></div>
+        <div class="pb"><div class="ch-wrap" style="height:220px"><canvas id="orthoChart" role="img" aria-label="Orthogonality inner product visualization"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="ph-title">Orthonormality — first 6 modes <span class="ph-eq">⟨m|n⟩ = δmn</span></div></div>
+      <div class="pb">
+        <div class="ch-wrap" style="height:180px"><canvas id="modeChart" role="img" aria-label="Orthonormal eigenstates"></canvas></div>
+        <div style="font-size:11px;color:var(--text2);margin-top:10px;padding:8px;background:rgba(0,229,160,.05);border-radius:6px;border-left:2px solid var(--green)">
+          Each mode Ψₙ is normalized: ⟨n|n⟩ = 1. Any two distinct modes are orthogonal: ⟨m|n⟩ = 0 for m≠n. Together: <span style="color:var(--green);font-family:'JetBrains Mono'">⟨m|n⟩ = δmn</span>.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="ph-title">Differential Probability per mode <span class="ph-eq">dPₙ/dx = |Ψₙ|²</span></div></div>
+      <div class="pb"><div class="ch-wrap" style="height:160px"><canvas id="diffModeChart" role="img" aria-label="Differential probability per mode"></canvas></div></div>
+    </div>
+
+  </div>
+
+  <!-- ═ TAB: REFERENCE ═ -->
+  <div class="tab-page" id="tab-reference">
+    <div class="grid3">
+      <div class="info-card">
+        <h4>Probability Amplitude</h4>
+        <div class="formula">Ψ(x,t) ∈ ℂ</div>
+        <p>The wavefunction Ψ is a complex-valued probability amplitude. It encodes all quantum information about the state. Direct measurement of Ψ is impossible — only |Ψ|² is observable.</p>
+      </div>
+      <div class="info-card">
+        <h4>Probability Density</h4>
+        <div class="formula">ρ(x) = |Ψ(x)|² = Ψ*·Ψ</div>
+        <p>The Born rule: ρ(x) gives the probability per unit length of finding the particle at x. It is always real and non-negative.</p>
+      </div>
+      <div class="info-card">
+        <h4>Differential Probability</h4>
+        <div class="formula">dP = |Ψ(x)|² dx</div>
+        <p>The probability of finding the particle in the infinitesimal interval [x, x+dx]. Integrating over all space gives the total probability = 1.</p>
+      </div>
+      <div class="info-card">
+        <h4>Normalization</h4>
+        <div class="formula">∫₋∞^∞ |Ψ|² dx = 1</div>
+        <p>A valid wavefunction must be normalizable: the total probability of finding the particle <em>somewhere</em> must equal exactly 1. Non-normalizable states are unphysical.</p>
+      </div>
+      <div class="info-card">
+        <h4>Square-Integrability</h4>
+        <div class="formula">Ψ ∈ L²(ℝ) ⟺ ‖Ψ‖ &lt; ∞</div>
+        <p>Physical wavefunctions must belong to the Hilbert space L²(ℝ): the integral of |Ψ|² must converge. This excludes plane waves, which require normalization via delta functions.</p>
+      </div>
+      <div class="info-card">
+        <h4>Scalability / Global Phase</h4>
+        <div class="formula">c·Ψ ≡ Ψ (|c|=1)</div>
+        <p>Multiplying Ψ by a complex constant c changes the wavefunction but not the physical state when |c|=1. For |c|≠1, the probability density scales by |c|², requiring renormalization.</p>
+      </div>
+      <div class="info-card">
+        <h4>Orthogonality</h4>
+        <div class="formula">⟨m|n⟩ = ∫Ψm*·Ψn dx = 0</div>
+        <p>Two distinct eigenstates of a Hermitian operator are orthogonal — their inner product vanishes. This is the quantum analogue of perpendicular vectors.</p>
+      </div>
+      <div class="info-card">
+        <h4>Orthonormality</h4>
+        <div class="formula">⟨m|n⟩ = δmn</div>
+        <p>A set is orthonormal if states are both orthogonal (⟨m|n⟩=0 for m≠n) and normalized (⟨n|n⟩=1). Orthonormal bases make quantum calculations tractable.</p>
+      </div>
+      <div class="info-card">
+        <h4>Heisenberg Uncertainty</h4>
+        <div class="formula">Δx · Δp ≥ ħ/2</div>
+        <p>Localizing a particle (small Δx) requires many k-components (large Δk ~ Δp/ħ). The product Δx·Δk ≥ ½ is a mathematical consequence of Fourier theory — not measurement disturbance.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end content -->
+</div><!-- end main -->
 
 <script>
-// ─── State ────────────────────────────────────────────────────
-const state = {
-  N: 8, dk: 0.8, k0: 2.0, A: 1.0, alpha: 0.8,
+// ══════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════
+const S = {
+  N: 20, infinite: false,
+  dk: 1.0, k0: 2.0, A: 1.0, alpha: 0.8,
+  cRe: 1.0, cIm: 0.0, cTheta: 0.0,
   t: 0, animating: false, animId: null,
-  layers: { individual: true, envelope: true, super: true, phase: false }
+  layers: { individual:true, envelope:true, super:true, prob:false, scaled:false, phase:false }
 };
 
-const N_POINTS = 600;
-const X_MIN = 0, X_MAX = 5 * Math.PI;
-const xs = Array.from({length: N_POINTS}, (_, i) => X_MIN + (X_MAX - X_MIN) * i / (N_POINTS - 1));
+const NP = 500;
+const XMN = 0, XMX = 5*Math.PI;
+const xs = Array.from({length:NP}, (_,i) => XMN + (XMX-XMN)*i/(NP-1));
 
-// ─── Slider bindings ──────────────────────────────────────────
-const sliders = {
-  slN:     { key:'N',     div:10, label:'valN',     format: v => v.toFixed(0) },
-  slDk:    { key:'dk',   div:10, label:'valDk',    format: v => v.toFixed(1) },
-  slK0:    { key:'k0',   div:10, label:'valK0',    format: v => v.toFixed(1) },
-  slA:     { key:'A',    div:10, label:'valA',     format: v => v.toFixed(1) },
-  slAlpha: { key:'alpha',div:10, label:'valAlpha', format: v => v.toFixed(2) },
-};
+// ══════════════════════════════════════════════════════════
+//  PHYSICS
+// ══════════════════════════════════════════════════════════
+function omega(k){ return S.k0 * (k/S.k0) * (1 + S.alpha*(k-S.k0)/S.k0); }
 
-Object.entries(sliders).forEach(([id, cfg]) => {
-  const el = document.getElementById(id);
-  el.addEventListener('input', () => {
-    const raw = parseInt(el.value);
-    const val = cfg.key === 'N' ? raw : raw / cfg.div;
-    state[cfg.key] = val;
-    document.getElementById(cfg.label).textContent = cfg.format(val);
-    update();
-  });
-});
+function getEffN(){ return S.infinite ? 500 : Math.max(1, Math.round(S.N)); }
 
-// ─── Physics ──────────────────────────────────────────────────
-function omega(k) {
-  return state.k0 * (k / state.k0) * (1 + state.alpha * (k - state.k0) / state.k0);
-}
-
-function buildWaves() {
-  const N = Math.round(state.N);
+function buildWaves(){
+  const N = getEffN();
   const waves = [];
-  for (let i = 0; i < N; i++) {
-    const frac = N === 1 ? 0 : (i / (N - 1) - 0.5);
-    const k = state.k0 + frac * state.dk;
-    const w = omega(k);
-    waves.push({ k, w });
+  for(let i=0;i<N;i++){
+    const frac = N===1 ? 0 : (i/(N-1)-0.5);
+    const k = S.k0 + frac * S.dk;
+    waves.push({ k, w: omega(k), frac });
   }
   return waves;
 }
 
-function computeSuper(waves, t) {
-  return xs.map(x => {
-    let s = 0;
-    for (const {k,w} of waves) s += Math.sin(k * x - w * t);
-    return state.A * s / waves.length;
+// Complex wavefunction (real + imag parts)
+function computeComplexSuper(waves, t){
+  const re=[], im=[];
+  for(let j=0;j<NP;j++){
+    const x=xs[j]; let sr=0,si=0;
+    for(const {k,w} of waves){
+      sr += Math.cos(k*x - w*t);
+      si += Math.sin(k*x - w*t);
+    }
+    const n = waves.length;
+    re.push(S.A*sr/n); im.push(S.A*si/n);
+  }
+  return {re,im};
+}
+
+function probDensity(re,im){ return re.map((_,i)=>re[i]**2+im[i]**2); }
+
+function trapz(y){ // numerical integration via trapezoidal rule
+  const dx=(XMX-XMN)/(NP-1);
+  let s=0;
+  for(let i=0;i<NP-1;i++) s+=(y[i]+y[i+1])*0.5;
+  return s*dx;
+}
+
+// Normalize: scale so ∫|Ψ|²=1
+function normalize(re,im){
+  const pd=probDensity(re,im);
+  const norm=Math.sqrt(trapz(pd));
+  if(norm<1e-12) return {re:[...re],im:[...im]};
+  return {re:re.map(v=>v/norm), im:im.map(v=>v/norm)};
+}
+
+// Expectation values
+function expectation(op, pd){ // op = xs or xs^2
+  const integrand = op.map((_,i)=>op[i]*pd[i]);
+  return trapz(integrand);
+}
+
+// ══════════════════════════════════════════════════════════
+//  CHART HELPERS
+// ══════════════════════════════════════════════════════════
+const G='rgba(80,160,255,0.06)', T='rgba(100,140,192,0.5)';
+
+function makeOpts(yMin=-1.5,yMax=1.5,xCb=null){
+  return {
+    responsive:true, maintainAspectRatio:false, animation:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    elements:{point:{radius:0}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:8,callback:xCb||piCb}},
+      y:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:5},min:yMin,max:yMax}
+    }
+  };
+}
+
+function piCb(v,i){
+  const xv=xs[i];
+  const cands=[0,Math.PI,2*Math.PI,3*Math.PI,4*Math.PI,5*Math.PI];
+  const lbls=['0','π','2π','3π','4π','5π'];
+  for(let j=0;j<cands.length;j++) if(Math.abs(xv-cands[j])<0.1) return lbls[j];
+  return '';
+}
+
+function makeChart(id, datasets, opts){
+  return new Chart(document.getElementById(id),{
+    type:'line', data:{labels:xs.map(x=>x.toFixed(3)), datasets}, options:opts
   });
 }
 
-function computeEnvelope(waves, t) {
-  // Analytical gaussian-like envelope estimate
-  return xs.map(x => {
-    let sr = 0, si = 0;
-    for (const {k,w} of waves) {
-      sr += Math.cos(k * x - w * t);
-      si += Math.sin(k * x - w * t);
-    }
-    return state.A * Math.sqrt(sr*sr + si*si) / waves.length;
-  });
+function ds(data,color,width=1.5,dash=[]){
+  return {data,borderColor:color,borderWidth:width,borderDash:dash,tension:0.3,fill:false,pointRadius:0};
 }
 
-function computeIndividuals(waves, t) {
-  return waves.map(({k,w}) => xs.map(x => Math.sin(k * x - w * t)));
-}
+// ══════════════════════════════════════════════════════════
+//  INIT CHARTS
+// ══════════════════════════════════════════════════════════
+const mainChart    = makeChart('mainChart',    [], makeOpts(-1.5,1.5));
+const ampChart     = makeChart('ampChart',     [], makeOpts(-1.5,1.5));
+const probChart    = makeChart('probChart',    [], makeOpts(0,1.5));
+const diffPChart   = makeChart('diffProbChart',[], makeOpts(0,1.5));
+const scaledChart  = makeChart('scaledChart',  [], makeOpts(-3,3));
+const cumProbChart = makeChart('cumProbChart', [], makeOpts(0,1.1));
+const normChart    = makeChart('normChart',    [], makeOpts(0,1.5));
+const sqIntChart   = makeChart('sqIntChart',   [], makeOpts(0,2));
+const scalarFChart = makeChart('scalarFullChart',[], makeOpts(-3,3));
 
-// ─── Chart setup ──────────────────────────────────────────────
-const GRID   = 'rgba(50,140,255,0.06)';
-const TICK   = 'rgba(120,156,200,0.5)';
-const NO_ANIM = { duration: 0 };
-
-const baseOpts = {
-  responsive: true, maintainAspectRatio: false, animation: false,
-  plugins: { legend: { display: false }, tooltip: { enabled: false } },
-  elements: { point: { radius: 0 } },
-  scales: {
-    x: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 9, family:'JetBrains Mono' }, maxTicksLimit: 8,
-      callback: (v, i) => {
-        const xv = xs[i];
-        const candidates = [0, Math.PI, 2*Math.PI, 3*Math.PI, 4*Math.PI, 5*Math.PI];
-        const labels = ['0','π','2π','3π','4π','5π'];
-        for (let j = 0; j < candidates.length; j++) {
-          if (Math.abs(xv - candidates[j]) < 0.08) return labels[j];
-        }
-        return '';
-      }
-    }},
-    y: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 9, family:'JetBrains Mono' }, maxTicksLimit: 5 }, min: -1.5, max: 1.5 }
-  }
-};
-
-// Main chart
-const mainCtx = document.getElementById('mainChart');
-const mainChart = new Chart(mainCtx, {
-  type: 'line',
-  data: { labels: xs.map(x => x.toFixed(3)), datasets: [] },
-  options: { ...baseOpts }
-});
-
-// Spectrum chart
-const specCtx = document.getElementById('spectrumChart');
-const specChart = new Chart(specCtx, {
-  type: 'bar',
-  data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: [], borderWidth: 1 }] },
-  options: {
-    responsive: true, maintainAspectRatio: false, animation: false,
-    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-    scales: {
-      x: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 9, family:'JetBrains Mono' }, maxTicksLimit: 8 } },
-      y: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 9, family:'JetBrains Mono' }, maxTicksLimit: 4 }, min: 0, title: { display: true, text: 'amplitude', color: TICK, font: { size: 9 } } }
+// k-spectrum
+const specChart = new Chart(document.getElementById('spectrumChart'),{
+  type:'bar',
+  data:{labels:[],datasets:[{data:[],backgroundColor:[],borderColor:[],borderWidth:1}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:8}},
+      y:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:4},min:0}
     }
   }
 });
 
-// Dispersion chart
-const dispCtx = document.getElementById('dispersionChart');
-const dispChart = new Chart(dispCtx, {
-  type: 'line',
-  data: { labels: [], datasets: [
-    { data: [], borderColor: '#a259ff', borderWidth: 2, tension: 0.4, fill: false, label: 'ω(k)' },
-    { data: [], borderColor: '#ffd060', borderWidth: 1, borderDash: [4,3], tension: 0, fill: false, label: 'linear' }
+// Dispersion
+const dispChart = new Chart(document.getElementById('dispersionChart'),{
+  type:'line',
+  data:{labels:[],datasets:[
+    {data:[],borderColor:'#a259ff',borderWidth:2,tension:0.4,fill:false,pointRadius:0},
+    {data:[],borderColor:'#ffd060',borderWidth:1,borderDash:[4,3],tension:0,fill:false,pointRadius:0}
   ]},
-  options: {
-    responsive: true, maintainAspectRatio: false, animation: false,
-    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-    scales: {
-      x: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 9, family:'JetBrains Mono' }, maxTicksLimit: 6 }, title: { display:true, text:'k', color:TICK, font:{size:9} } },
-      y: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 9, family:'JetBrains Mono' }, maxTicksLimit: 5 }, title: { display:true, text:'ω', color:TICK, font:{size:9} } }
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    elements:{point:{radius:0}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:6},title:{display:true,text:'k',color:T,font:{size:9}}},
+      y:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:5},title:{display:true,text:'ω',color:T,font:{size:9}}}
     }
   }
 });
 
-// ─── Update ───────────────────────────────────────────────────
-function update() {
+// Modes chart for orthogonality tab
+const modeChart = new Chart(document.getElementById('modeChart'),{
+  type:'line',
+  data:{labels:xs.map(x=>x.toFixed(3)),datasets:[]},
+  options:makeOpts(-2.5,2.5)
+});
+
+// Orthogonality inner-product chart
+const orthoChart = new Chart(document.getElementById('orthoChart'),{
+  type:'bar',
+  data:{labels:[],datasets:[{data:[],backgroundColor:[],borderColor:[],borderWidth:1}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'}}},
+      y:{grid:{color:G},ticks:{color:T,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:5},min:-0.2,max:1.2}
+    }
+  }
+});
+
+// Differential probability per mode
+const diffModeChart = new Chart(document.getElementById('diffModeChart'),{
+  type:'line',
+  data:{labels:xs.map(x=>x.toFixed(3)),datasets:[]},
+  options:makeOpts(0,2)
+});
+
+// ══════════════════════════════════════════════════════════
+//  MAIN UPDATE
+// ══════════════════════════════════════════════════════════
+function update(){
   const waves = buildWaves();
-  const t = state.t;
+  const t = S.t;
+  const {re,im} = computeComplexSuper(waves, t);
+  const {re:reN,im:imN} = normalize(re,im);
+  const pd  = probDensity(re,im);
+  const pdN = probDensity(reN,imN);
 
-  // Build datasets for main chart
-  const datasets = [];
-
-  if (state.layers.individual && waves.length <= 20) {
-    const individuals = computeIndividuals(waves, t);
-    individuals.forEach((d, i) => {
-      datasets.push({
-        data: d,
-        borderColor: 'rgba(58,143,255,0.18)',
-        borderWidth: 1,
-        tension: 0.3,
-        fill: false,
-        pointRadius: 0
-      });
-    });
+  // ── Main chart ──────────────────────────────────────────
+  const datasets=[];
+  if(S.layers.individual && waves.length<=40){
+    for(const {k,w} of waves){
+      datasets.push(ds(xs.map(x=>Math.sin(k*x-w*t)),'rgba(74,158,255,0.15)',0.8));
+    }
   }
-
-  if (state.layers.phase) {
-    const carrier = xs.map(x => state.A * Math.sin(state.k0 * x - omega(state.k0) * t));
-    datasets.push({ data: carrier, borderColor: 'rgba(162,89,255,0.5)', borderWidth: 1, borderDash:[5,3], tension:0.3, fill:false, pointRadius:0 });
+  if(S.layers.phase){
+    datasets.push(ds(xs.map(x=>S.A*Math.sin(S.k0*x-omega(S.k0)*t)),'rgba(255,105,180,0.5)',1,[5,3]));
   }
-
-  const superData = computeSuper(waves, t);
-
-  if (state.layers.envelope) {
-    const env = computeEnvelope(waves, t);
-    datasets.push({ data: env, borderColor: 'rgba(0,229,160,0.6)', borderWidth: 1.5, borderDash:[3,3], tension:0.3, fill:false, pointRadius:0 });
-    datasets.push({ data: env.map(v => -v), borderColor: 'rgba(0,229,160,0.6)', borderWidth: 1.5, borderDash:[3,3], tension:0.3, fill:false, pointRadius:0 });
+  if(S.layers.envelope){
+    const env = xs.map((x,i)=>Math.sqrt(re[i]**2+im[i]**2));
+    datasets.push(ds(env,'rgba(0,229,160,0.6)',1.5,[3,3]));
+    datasets.push(ds(env.map(v=>-v),'rgba(0,229,160,0.6)',1.5,[3,3]));
   }
-
-  if (state.layers.super) {
-    datasets.push({ data: superData, borderColor: '#ff6b35', borderWidth: 2.5, tension: 0.3, fill: false, pointRadius:0 });
+  if(S.layers.prob){
+    datasets.push(ds(pdN,'rgba(255,208,96,0.8)',2));
   }
-
-  mainChart.data.datasets = datasets;
+  if(S.layers.scaled){
+    const mag=Math.sqrt(S.cRe**2+S.cIm**2);
+    datasets.push(ds(reN.map(v=>mag*v),'rgba(162,89,255,0.8)',1.5,[2,2]));
+  }
+  if(S.layers.super){
+    datasets.push(ds(re,'#ff6b35',2.5));
+  }
+  mainChart.data.datasets=datasets;
   mainChart.update('none');
 
-  // Spectrum
-  const N = Math.round(state.N);
-  const kVals = [], amps = [], bgs = [], bcs = [];
-  for (let i = 0; i < N; i++) {
-    const frac = N === 1 ? 0 : (i / (N - 1) - 0.5);
-    const k = state.k0 + frac * state.dk;
+  // ── Spectrum ────────────────────────────────────────────
+  const kVals=[],amps=[],bgs=[],bcs=[];
+  const dispN=Math.min(getEffN(),120);
+  for(let i=0;i<dispN;i++){
+    const frac=dispN===1?0:(i/(dispN-1)-0.5);
+    const k=S.k0+frac*S.dk;
     kVals.push(k.toFixed(2));
-    const amp = state.A * Math.exp(-0.5 * Math.pow(frac * 3, 2));
+    const amp=S.A*Math.exp(-0.5*(frac*3)**2);
     amps.push(amp);
-    const intensity = Math.round(58 + (amp / state.A) * 130);
-    bgs.push(`rgba(${intensity},143,255,0.6)`);
-    bcs.push(`rgba(${intensity},143,255,0.9)`);
+    const inten=Math.round(74+(amp/S.A)*130);
+    bgs.push(`rgba(${inten},158,255,0.55)`);
+    bcs.push(`rgba(${inten},158,255,0.9)`);
   }
-  specChart.data.labels = kVals;
-  specChart.data.datasets[0].data = amps;
-  specChart.data.datasets[0].backgroundColor = bgs;
-  specChart.data.datasets[0].borderColor = bcs;
+  specChart.data.labels=kVals;
+  specChart.data.datasets[0].data=amps;
+  specChart.data.datasets[0].backgroundColor=bgs;
+  specChart.data.datasets[0].borderColor=bcs;
   specChart.update('none');
 
-  // Dispersion
-  const kRange = Array.from({length: 80}, (_, i) => (state.k0 - state.dk * 2) + i * (state.dk * 4 / 79));
-  dispChart.data.labels = kRange.map(k => k.toFixed(2));
-  dispChart.data.datasets[0].data = kRange.map(k => omega(k));
-  dispChart.data.datasets[1].data = kRange.map(k => omega(state.k0) + (k - state.k0));
+  // ── Dispersion ──────────────────────────────────────────
+  const kRange=Array.from({length:80},(_,i)=>(S.k0-S.dk*2)+i*(S.dk*4/79));
+  dispChart.data.labels=kRange.map(k=>k.toFixed(2));
+  dispChart.data.datasets[0].data=kRange.map(k=>omega(k));
+  dispChart.data.datasets[1].data=kRange.map(k=>omega(S.k0)+(k-S.k0));
   dispChart.update('none');
 
-  // Metrics
-  const vp = omega(state.k0) / state.k0;
-  const dk_eps = 0.001;
-  const vg = (omega(state.k0 + dk_eps) - omega(state.k0 - dk_eps)) / (2 * dk_eps);
-  document.getElementById('mVp').innerHTML = vp.toFixed(2) + ' <span class="metric-unit">m/s</span>';
-  document.getElementById('mVg').innerHTML = vg.toFixed(2) + ' <span class="metric-unit">m/s</span>';
+  // ── Metrics ─────────────────────────────────────────────
+  const vp = omega(S.k0)/S.k0;
+  const eps=0.001;
+  const vg=(omega(S.k0+eps)-omega(S.k0-eps))/(2*eps);
+  const dxEst=1/(S.dk||0.001);
+  const prod=dxEst*S.dk;
+  const normVal=trapz(pd);
+  const meanX=expectation(xs,pdN);
+  set('mVp', vp.toFixed(2)+' m/s');
+  set('mVg', vg.toFixed(2)+' m/s');
+  set('mUncert', prod.toFixed(2));
+  set('mLambda', (2*Math.PI/S.k0).toFixed(2)+' m');
+  set('mNorm', normVal.toFixed(3));
+  set('mMean', meanX.toFixed(2));
+  set('phaseDisp','t = '+t.toFixed(2)+'s');
 
-  const dxEst = 1 / (state.dk || 0.001);
-  const product = dxEst * state.dk;
-  document.getElementById('mUncert').textContent = product.toFixed(2);
-  document.getElementById('mLambda').innerHTML = (2 * Math.PI / state.k0).toFixed(2) + ' <span class="metric-unit">m</span>';
+  const dxN=Math.min(dxEst/10,1), dkN=Math.min(S.dk/3,1);
+  id('uxFill').style.width=(dxN*100)+'%';
+  id('ukFill').style.width=(dkN*100)+'%';
+  id('uxFill').style.background=prod<0.5?'#ff4d6d':prod<1?'#ffd060':'#4a9eff';
+  set('uxVal',dxEst.toFixed(2));
+  set('ukVal',S.dk.toFixed(2));
+  set('prodVal',prod.toFixed(3));
 
-  // Uncertainty bars
-  const dxNorm = Math.min(dxEst / 10, 1);
-  const dkNorm = Math.min(state.dk / 3, 1);
-  document.getElementById('uxFill').style.width = (dxNorm * 100) + '%';
-  document.getElementById('ukFill').style.width = (dkNorm * 100) + '%';
-  document.getElementById('uxVal').textContent = dxEst.toFixed(2);
-  document.getElementById('ukVal').textContent = state.dk.toFixed(2);
+  // ── Probability tab ────────────────────────────────────
+  ampChart.data.datasets=[
+    ds(re,'#4a9eff',2),
+    ds(im,'rgba(162,89,255,0.7)',1.5,[4,2])
+  ];
+  ampChart.update('none');
 
-  const unc = dxEst * state.dk;
-  document.getElementById('uxFill').style.background = unc < 0.5 ? '#ff4d6d' : unc < 1 ? '#ffd060' : '#3a8fff';
+  probChart.data.datasets=[ds(pdN,'#ffd060',2.5)];
+  probChart.options.scales.y.max=Math.max(0.1,...pdN)*1.2;
+  probChart.update('none');
 
-  document.getElementById('phaseDisp').textContent = 't = ' + t.toFixed(2) + ' s';
+  // Differential probability dP/dx = |Ψ|²·dx (shown as |Ψ|² histogram)
+  const dx=(XMX-XMN)/(NP-1);
+  const dP=pdN.map(v=>v*dx);
+  diffPChart.data.datasets=[ds(dP,'rgba(0,212,255,0.8)',2)];
+  diffPChart.options.scales.y.max=Math.max(0.01,...dP)*1.3;
+  diffPChart.update('none');
+
+  // Cumulative P(x)
+  let cum=0; const cumP=dP.map(v=>{cum+=v;return cum;});
+  cumProbChart.data.datasets=[ds(cumP,'#00e5a0',2)];
+  cumProbChart.update('none');
+
+  // Scaled Ψ
+  const mag=Math.sqrt(S.cRe**2+S.cIm**2);
+  scaledChart.data.datasets=[
+    ds(reN,'rgba(74,158,255,0.5)',1.5,[4,2]),
+    ds(reN.map(v=>mag*v),'#a259ff',2),
+    ds(pdN,'rgba(255,208,96,0.5)',1,[3,3]),
+    ds(pdN.map(v=>mag**2*v),'rgba(255,208,96,0.9)',1.5,[3,3])
+  ];
+  scaledChart.options.scales.y.min=-mag*1.5-0.2;
+  scaledChart.options.scales.y.max= mag*1.5+0.2;
+  scaledChart.update('none');
+  set('scalarDisp', `${S.cRe.toFixed(1)} + ${S.cIm.toFixed(1)}i`);
+
+  // ── Quantum properties tab ─────────────────────────────
+  // Normalization running integral
+  const running=[];let rsum=0;
+  for(let i=0;i<NP-1;i++){rsum+=(pdN[i]+pdN[i+1])*0.5*dx;running.push(rsum);}
+  running.push(rsum);
+  normChart.data.datasets=[
+    ds(running,'#00e5a0',2),
+    ds(xs.map(()=>1),'rgba(255,208,96,0.4)',1,[4,2])
+  ];
+  normChart.update('none');
+
+  // Square integrability: running ∫|Ψ(raw)|²
+  let sqsum=0; const sqrun=[];
+  for(let i=0;i<NP-1;i++){sqsum+=(pd[i]+pd[i+1])*0.5*dx;sqrun.push(sqsum);}
+  sqrun.push(sqsum);
+  sqIntChart.data.datasets=[ds(sqrun,sqsum<1e6?'#4a9eff':'#ff4d6d',2)];
+  sqIntChart.options.scales.y.max=Math.max(2,sqsum*1.1);
+  sqIntChart.update('none');
+
+  // Scalar full chart
+  const theta=S.cTheta;
+  const cAbs=mag, cReEff=cAbs*Math.cos(theta), cImEff=cAbs*Math.sin(theta);
+  const scaledRe=reN.map((v,i)=>cReEff*v - cImEff*imN[i]);
+  const scaledPd=probDensity(scaledRe, reN.map((_,i)=>cReEff*imN[i]+cImEff*reN[i]));
+  scalarFChart.data.datasets=[
+    ds(reN,'rgba(74,158,255,0.5)',1.5,[4,2]),
+    ds(scaledRe,'#a259ff',2),
+    ds(pdN,'rgba(255,208,96,0.5)',1,[3,3]),
+    ds(scaledPd,'rgba(255,208,96,0.9)',1.5)
+  ];
+  scalarFChart.options.scales.y.min=Math.min(-1.5,-mag-0.2);
+  scalarFChart.options.scales.y.max=Math.max(1.5, mag+0.2);
+  scalarFChart.update('none');
+
+  // Expectation values
+  const ex=meanX, ex2=expectation(xs.map(v=>v**2),pdN);
+  const sigX=Math.sqrt(Math.max(0,ex2-ex**2));
+  const sigK=S.dk;
+  const heis=sigX*sigK;
+  set('qEx', ex.toFixed(3));
+  set('qEx2', ex2.toFixed(3));
+  set('qSigX', sigX.toFixed(3));
+  set('qEk', S.k0.toFixed(2));
+  set('qSigK', sigK.toFixed(3));
+  set('qHeis', heis.toFixed(3));
+  set('qNorm', normVal.toFixed(4));
+  set('qNormN', '1.0000');
+  const sqOk=normVal<1e6;
+  id('qNormSt').className='status '+(Math.abs(normVal-1)<0.05?'ok':'warn');
+  id('qNormSt').textContent=Math.abs(normVal-1)<0.05?'✓ normalized':'rescale';
+  set('qSqInt', normVal.toFixed(4));
+  id('qSqIntSt').className='status '+(sqOk?'ok':'fail');
+  id('qSqIntSt').textContent=sqOk?'✓ L²(ℝ)':'diverges';
+
+  // ── Orthogonality tab ──────────────────────────────────
+  updateOrtho();
 }
 
-// ─── Animation ────────────────────────────────────────────────
-function toggleAnimate() {
-  state.animating = !state.animating;
-  const btn = document.getElementById('animBtn');
-  if (state.animating) {
-    btn.textContent = '⏸ pause';
-    btn.classList.add('playing');
-    animate();
-  } else {
-    btn.textContent = '▶ animate';
-    btn.classList.remove('playing');
-    cancelAnimationFrame(state.animId);
+// ── Orthogonality/Orthonormality ───────────────────────────
+function pibState(n, x, L){ return Math.sqrt(2/L)*Math.sin(n*Math.PI*x/L); }
+const L_ortho = XMX;
+
+function innerProduct(n,m){
+  const dx=(XMX-XMN)/(NP-1);
+  let s=0;
+  for(let i=0;i<NP-1;i++){
+    const x=xs[i], xn=xs[i+1];
+    s+=((pibState(n,x,L_ortho)*pibState(m,x,L_ortho))+(pibState(n,xn,L_ortho)*pibState(m,xn,L_ortho)))*0.5;
   }
+  return s*dx;
 }
 
-function animate() {
-  state.t += 0.025;
-  update();
-  state.animId = requestAnimationFrame(animate);
+function updateOrtho(){
+  const M=Math.max(1,Math.min(8,parseInt(id('orthoM').value)||4));
+  // Matrix
+  const wrap=id('orthMatrixWrap');
+  let html='<table class="orth-matrix"><tr><td style="font-size:9px;color:var(--text3);font-family:\'JetBrains Mono\'">&nbsp;</td>';
+  for(let n=1;n<=M;n++) html+=`<td style="font-size:9px;color:var(--text3);font-family:'JetBrains Mono'">${n}</td>`;
+  html+='</tr>';
+  for(let m=1;m<=M;m++){
+    html+=`<tr><td style="font-size:9px;color:var(--text3);font-family:'JetBrains Mono'">${m}</td>`;
+    for(let n=1;n<=M;n++){
+      const ip=innerProduct(m,n);
+      const abs=Math.abs(ip);
+      const isDiag=m===n;
+      const ok=isDiag?(abs>0.95):(abs<0.05);
+      const bg=isDiag?`rgba(0,229,160,${0.1+abs*0.4})`:abs<0.05?'transparent':`rgba(255,77,109,${Math.min(abs*2,0.5)})`;
+      const col=isDiag?'#00e5a0':abs<0.05?'var(--text3)':'#ff4d6d';
+      html+=`<td style="background:${bg};color:${col};font-family:'JetBrains Mono';font-size:9px">${ip.toFixed(2)}</td>`;
+    }
+    html+='</tr>';
+  }
+  html+='</table>';
+  wrap.innerHTML=html;
+
+  // Ortho chart: inner products for first M*(M+1)/2 pairs
+  const labels=[], vals=[], bgs=[];
+  for(let m=1;m<=M;m++) for(let n=m;n<=M;n++){
+    labels.push(`⟨${m}|${n}⟩`);
+    const ip=Math.abs(innerProduct(m,n));
+    vals.push(ip);
+    bgs.push(m===n?'rgba(0,229,160,0.7)':ip<0.05?'rgba(74,158,255,0.3)':'rgba(255,77,109,0.6)');
+  }
+  orthoChart.data.labels=labels;
+  orthoChart.data.datasets[0].data=vals;
+  orthoChart.data.datasets[0].backgroundColor=bgs;
+  orthoChart.data.datasets[0].borderColor=bgs.map(b=>b.replace('0.7','1').replace('0.3','0.8').replace('0.6','1'));
+  orthoChart.update('none');
+
+  // Mode chart: first 6 orthonormal states
+  const colors=['#4a9eff','#00e5a0','#ff6b35','#a259ff','#ffd060','#ff69b4'];
+  modeChart.data.datasets=Array.from({length:Math.min(6,M)},(_,i)=>({
+    data:xs.map(x=>pibState(i+1,x,L_ortho)),
+    borderColor:colors[i], borderWidth:1.5, tension:0.3, fill:false, pointRadius:0,
+    borderDash:i%2===1?[4,2]:[]
+  }));
+  modeChart.update('none');
+
+  // Differential probability per mode
+  const dx=(XMX-XMN)/(NP-1);
+  diffModeChart.data.datasets=Array.from({length:Math.min(4,M)},(_,i)=>({
+    data:xs.map(x=>pibState(i+1,x,L_ortho)**2*dx),
+    borderColor:colors[i], borderWidth:1.5, tension:0.3, fill:false, pointRadius:0
+  }));
+  diffModeChart.options.scales.y.max=0.5;
+  diffModeChart.update('none');
 }
 
-// ─── Layer toggles ────────────────────────────────────────────
-function toggleLayer(name) {
-  state.layers[name] = !state.layers[name];
-  const tog = document.getElementById('tog-' + name);
-  tog.classList.toggle('on', state.layers[name]);
-  update();
-}
+// ══════════════════════════════════════════════════════════
+//  CONTROLS
+// ══════════════════════════════════════════════════════════
+function id(x){return document.getElementById(x);}
+function set(x,v){const el=id(x);if(el)el.textContent=v;}
 
-// ─── Presets ─────────────────────────────────────────────────
-const presets = {
-  narrow:  { N:30, dk:2.0, k0:2.0, A:1.0, alpha:0.8 },
-  broad:   { N:4,  dk:0.3, k0:2.0, A:1.0, alpha:0.5 },
-  quantum: { N:20, dk:1.5, k0:3.0, A:1.0, alpha:1.2 },
-  optics:  { N:15, dk:0.5, k0:5.0, A:1.0, alpha:0.3 },
+// Sliders
+const sliders={
+  slDk:{key:'dk',div:10,lbl:'valDk',fmt:v=>v.toFixed(1)},
+  slK0:{key:'k0',div:10,lbl:'valK0',fmt:v=>v.toFixed(1)},
+  slA: {key:'A', div:10,lbl:'valA', fmt:v=>v.toFixed(1)},
+  slAlpha:{key:'alpha',div:10,lbl:'valAlpha',fmt:v=>v.toFixed(2)},
+  slC:{key:'cMag',div:10,lbl:'valC',fmt:v=>v.toFixed(2)},
+  slCRe:{key:'cRe',div:10,lbl:'valCRe',fmt:v=>v.toFixed(1)},
+  slCIm:{key:'cIm',div:10,lbl:'valCIm',fmt:v=>v.toFixed(1)},
+  slCTheta:{key:'cTheta',div:10,lbl:'valCTheta',fmt:v=>v.toFixed(1)},
 };
+Object.entries(sliders).forEach(([sid,cfg])=>{
+  const el=id(sid); if(!el) return;
+  el.addEventListener('input',()=>{
+    const raw=parseInt(el.value);
+    const val=raw/cfg.div;
+    S[cfg.key]=val;
+    set(cfg.lbl,cfg.fmt(val));
+    update();
+  });
+});
 
-function loadPreset(name) {
-  const p = presets[name];
-  Object.assign(state, p);
+// N controls
+id('slN').addEventListener('input',()=>{
+  if(S.infinite) return;
+  S.N=parseInt(id('slN').value);
+  id('nInput').value=S.N;
+  set('valN', S.infinite?'∞':S.N);
+  update();
+});
+id('nInput').addEventListener('input',()=>{
+  if(S.infinite) return;
+  S.N=Math.max(1,parseInt(id('nInput').value)||1);
+  id('slN').value=Math.min(S.N,200);
+  set('valN',S.N);
+  update();
+});
 
-  // Update sliders
-  document.getElementById('slN').value = p.N;
-  document.getElementById('slDk').value = Math.round(p.dk * 10);
-  document.getElementById('slK0').value = Math.round(p.k0 * 10);
-  document.getElementById('slA').value = Math.round(p.A * 10);
-  document.getElementById('slAlpha').value = Math.round(p.alpha * 10);
-
-  // Update labels
-  document.getElementById('valN').textContent = p.N;
-  document.getElementById('valDk').textContent = p.dk.toFixed(1);
-  document.getElementById('valK0').textContent = p.k0.toFixed(1);
-  document.getElementById('valA').textContent = p.A.toFixed(1);
-  document.getElementById('valAlpha').textContent = p.alpha.toFixed(2);
-
-  state.t = 0;
+function setN(n){
+  S.infinite=false;
+  id('infBtn').classList.remove('active');
+  S.N=n;
+  id('slN').value=Math.min(n,200);
+  id('nInput').value=n;
+  set('valN',n);
   update();
 }
 
-// ─── Init ─────────────────────────────────────────────────────
+function toggleInfinite(){
+  S.infinite=!S.infinite;
+  id('infBtn').classList.toggle('active',S.infinite);
+  set('valN',S.infinite?'∞':S.N);
+  if(S.infinite) id('slN').value=200;
+  update();
+}
+
+function toggleLayer(name){
+  S.layers[name]=!S.layers[name];
+  id('tog-'+name).classList.toggle('on',S.layers[name]);
+  update();
+}
+
+// Orthogonality M
+id('orthoM').addEventListener('input',updateOrtho);
+
+// ── Animation ──────────────────────────────────────────────
+function toggleAnimate(){
+  S.animating=!S.animating;
+  const btn=id('animBtn');
+  if(S.animating){btn.textContent='⏸ pause';btn.classList.add('playing');animate();}
+  else{btn.textContent='▶ animate';btn.classList.remove('playing');cancelAnimationFrame(S.animId);}
+}
+function animate(){S.t+=0.025;update();S.animId=requestAnimationFrame(animate);}
+
+// ── Presets ────────────────────────────────────────────────
+const presets={
+  narrow: {N:100,dk:2.0,k0:2.0,A:1.0,alpha:0.8},
+  broad:  {N:5,  dk:0.3,k0:2.0,A:1.0,alpha:0.5},
+  quantum:{N:40, dk:1.5,k0:3.0,A:1.0,alpha:1.2},
+  optics: {N:30, dk:0.5,k0:5.0,A:1.0,alpha:0.3},
+  infinite:{N:500,dk:1.8,k0:2.5,A:1.0,alpha:0.9},
+  particle:{N:60, dk:0.8,k0:1.5,A:1.0,alpha:0.0},
+};
+function loadPreset(name){
+  const p=presets[name];
+  S.infinite=name==='infinite';
+  id('infBtn').classList.toggle('active',S.infinite);
+  Object.assign(S,p);
+  id('slN').value=Math.min(p.N,200);
+  id('nInput').value=p.N;
+  id('slDk').value=Math.round(p.dk*10);
+  id('slK0').value=Math.round(p.k0*10);
+  id('slA').value=Math.round(p.A*10);
+  id('slAlpha').value=Math.round(p.alpha*10);
+  set('valN',S.infinite?'∞':p.N);
+  set('valDk',p.dk.toFixed(1));
+  set('valK0',p.k0.toFixed(1));
+  set('valA',p.A.toFixed(1));
+  set('valAlpha',p.alpha.toFixed(2));
+  S.t=0; update();
+}
+
+// ── Tabs ───────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const names=['wave','prob','quantum','ortho','reference'];
+    t.classList.toggle('active',names[i]===name);
+  });
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+  if(name==='ortho') updateOrtho();
+}
+
+// ── Boot ───────────────────────────────────────────────────
 update();
 </script>
 </body>
